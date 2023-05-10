@@ -24,3 +24,10 @@ t_slot			*get_slot(t_slot		*s,
   return (&s[z * siz * siz + y * siz + x]);
 }
 
+t_slot			*get_slotp(t_program		*prog,
+				   int			x,
+				   int			y,
+				   int			z)
+{
+  return (get_slot(prog->ingame.slots, prog->ingame.size, x, y, z));
+}

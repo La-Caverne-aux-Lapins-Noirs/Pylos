@@ -7,39 +7,15 @@
 
 #include		"program.h"
 
-static void		tekpixel(t_bunny_pixelarray	*pix,
-				 t_bunny_position	pos,
-				 unsigned int		color)
-{
-  t_color		res;
-  t_color		ori;
-  t_color		lay;
-  double		under_ratio;
-  double		upper_ratio;
-  int			i;
-
-  if (pos.x >= pix->clipable.buffer.width ||
-      pos.y >= pix->clipable.buffer.height ||
-      pos.x < 0 || pos.y < 0)
-    return ;
-  lay.full = color;
-  if (lay.argb[ALPHA_CMP] == 255)
-    ((unsigned int*)pix->pixels)[pos.x + pos.y * pix->clipable.buffer.width] |= color;
-  else
-    {
-      res.full = 0;
-      ori.full = ((unsigned int*)pix->pixels)[pos.x + pos.y * pix->clipable.buffer.width];
-
-      upper_ratio = (double)lay.argb[ALPHA_CMP] / 255.0;
-      under_ratio = (double)(255 - lay.argb[ALPHA_CMP]) / 255.0;
-
-      res.argb[ALPHA_CMP] = 255;
-      for (i = RED_CMP; i < ALPHA_CMP; ++i)
-	res.argb[i] = ori.argb[i] * under_ratio + lay.argb[i] * upper_ratio;
-
-      ((unsigned int*)pix->pixels)[pos.x + pos.y * pix->clipable.buffer.width] |= res.full;
-    }
-}
+void			qsort_r(void		*base,
+				size_t		nmemb,
+				size_t		size,
+				int		(*compar)
+				(const void	*a,
+				 const void	*b,
+				 void		*arg
+				 ),
+				void		*arg);
 
 static void		rotate(t_zposition			*pos,
 			       const t_zposition		*rot)
@@ -70,20 +46,21 @@ static void		rotate(t_zposition			*pos,
 
 static size_t		size_of_map(size_t			siz)
 {
-  return (siz + siz > 0 ? size_of_map(siz - 1) : 0);
+  return (siz * siz + (siz > 0 ? size_of_map(siz - 1) : 0));
 }
 
 static t_bunny_position	isoproject(const t_zposition		*a,
 				   t_program			*prog)
 {
-  t_bunny_position	pos;
+  t_bunny_accurate_position	pos;
 
   (void)prog;
   pos.x = (a->x - a->y);
-  pos.y = a->x + a->y - a->z;
+  pos.y = (a->x + a->y - a->z) / 2.0;
   pos.x *= prog->ingame.ball->buffer.width;
   pos.y *= prog->ingame.ball->buffer.height;
-  return (pos);
+  t_bunny_position ppos = {round(pos.x), round(pos.y)};
+  return (ppos);
 }
 
 static int		compare_ball(const void			*_a,
@@ -110,18 +87,56 @@ static int		compare_ball(const void			*_a,
 
 t_bunny_response	ingame_display(t_program		*prog)
 {
+  unsigned int		coline[2] = {BLACK, BLACK};
   t_slot		*slot;
+  t_bunny_position	p[2];
   size_t		len = size_of_map(prog->ingame.size);
   t_zposition		pos[len];
   t_zposition		rot;
   int			x, y, z, i;
 
   // Rotation en 3D
-  rot.x = prog->rotation.x;
-  rot.y = prog->rotation.y;
+  rot.x = prog->ingame.rotation.x;
+  rot.y = prog->ingame.rotation.y;
   rot.z = 0;
 
   bunny_clear(&prog->screen->buffer, WHITE);
+
+  for (y = 0; y <= prog->ingame.size; ++y)
+    {
+      pos[0].x = -prog->ingame.size / 2.0;
+      pos[0].y = y - prog->ingame.size / 2.0;
+      pos[0].z = 0;
+      p[0] = isoproject(&pos[0], prog);
+      pos[0].x = +prog->ingame.size / 2.0;
+      pos[0].y = y - prog->ingame.size / 2.0;
+      pos[0].z = 0;
+      p[1] = isoproject(&pos[0], prog);
+
+      p[0].x += prog->screen->buffer.width / 2;
+      p[0].y += prog->screen->buffer.height / 2;
+      p[1].x += prog->screen->buffer.width / 2;
+      p[1].y += prog->screen->buffer.height / 2;
+      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+    }
+  for (x = 0; x <= prog->ingame.size; ++x)
+    {
+      pos[0].x = x - prog->ingame.size / 2.0;
+      pos[0].y = -prog->ingame.size / 2.0;
+      pos[0].z = 0;
+      p[0] = isoproject(&pos[0], prog);
+      pos[0].x = x - prog->ingame.size / 2.0;
+      pos[0].y = +prog->ingame.size / 2.0;
+      pos[0].z = 0;
+      p[1] = isoproject(&pos[0], prog);
+
+      p[0].x += prog->screen->buffer.width / 2;
+      p[0].y += prog->screen->buffer.height / 2;
+      p[1].x += prog->screen->buffer.width / 2;
+      p[1].y += prog->screen->buffer.height / 2;
+      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+    }
+
   for (i = z = 0; z < prog->ingame.size; ++z)
     for (y = 0; y < prog->ingame.size - z; ++y)
       for (x = 0; x < prog->ingame.size - z; ++x)
@@ -129,16 +144,17 @@ t_bunny_response	ingame_display(t_program		*prog)
 	  slot = get_slot(prog->ingame.slots, prog->ingame.size, x, y, z);
 	  if (*slot <= EMPTY)
 	    continue ;
-	  if (*slot == BLACK)
-	    prog->ingame.ball.color_mask.full = BLACK;
-	  else if (*slot == WHITE)
-	    prog->ingame.ball.color_mask.full = PINK2;
-	  else
+	  if (*slot >= LAST_SLOT)
 	    continue ;
+
+	  if (*slot == BLACKBALLS)
+	    prog->ingame.ball->color_mask.full = BLACK;
+	  else if (*slot == WHITEBALLS)
+	    prog->ingame.ball->color_mask.full = PINK2;
 
 	  // Position en 3D
 	  pos[i].x = x - prog->ingame.size / 2.0;
-	  pos[i).y = y - prog->ingame.size / 2.0;
+	  pos[i].y = y - prog->ingame.size / 2.0;
 	  pos[i].z = z;
 
 	  // On calcule
@@ -148,9 +164,10 @@ t_bunny_response	ingame_display(t_program		*prog)
   qsort_r(&pos[0], sizeof(pos[0]), len, compare_ball, prog);
   for (x = 0; x < i; ++x)
     {
-      t_bunny_position p = isoproject(pos[i], prog);
-
-      bunny_blit(&prog->screen, prog->ingame.ball, &p);
+      p[0] = isoproject(&pos[x], prog);
+      p[0].x += prog->screen->buffer.width / 2;
+      p[0].y += prog->screen->buffer.height / 2;
+      bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);
     }
 
   bunny_blit(&prog->win->buffer, prog->screen, NULL);

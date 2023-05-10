@@ -34,25 +34,27 @@ int			main(int		argc,
   bunny_enable_full_blit(true);
   ret = EXIT_FAILURE;
   if (argc > 2)
-    prog.cnf = bunny_open_configuration(argv[1], NULL);
+    {
+      prog.cnf = bunny_open_configuration(argv[1], NULL);
+      if (!prog.cnf)
+	{
+	  fprintf(stderr, "%s: Cannot load configuration.\n", argv[0]);
+	  return (EXIT_FAILURE);
+	}
+    }
   else
     {
       if (!bunny_join_binary_directory(argv[0]))
 	return (EXIT_FAILURE);
       prog.cnf = bunny_open_configuration("default_configuration.dab", NULL);
     }
-  if (!prog.cnf)
-    {
-      fprintf(stderr, "%s: Cannot load configuration.\n", argv[0]);
-      return (EXIT_FAILURE);
-    }
 
   siz.x = 800;
   siz.y = 600;
   tmp = false;
-  bunny_configuration_getf(prog.cnf, &siz.x, "Window.Size[0]");
-  bunny_configuration_getf(prog.cnf, &siz.y, "Window.Size[1]");
-  bunny_configuration_getf(prog.cnf, &tmp, "Window.Fullscreen");
+  prog.cnf && bunny_configuration_getf(prog.cnf, &siz.x, "Window.Size[0]");
+  prog.cnf && bunny_configuration_getf(prog.cnf, &siz.y, "Window.Size[1]");
+  prog.cnf && bunny_configuration_getf(prog.cnf, &tmp, "Window.Fullscreen");
   if (!(prog.win = bunny_start(siz.x, siz.y, tmp, "Solyp")))
     {
       fprintf(stderr, "%s: Cannot open window (%d, %d, %s).\n",
@@ -63,8 +65,8 @@ int			main(int		argc,
 
   siz.x = 320;
   siz.y = 240;
-  bunny_configuration_getf(prog.cnf, &siz.x, "Screen.Size[0]");
-  bunny_configuration_getf(prog.cnf, &siz.y, "Screen.Size[1]");
+  prog.cnf && bunny_configuration_getf(prog.cnf, &siz.x, "Screen.Size[0]");
+  prog.cnf && bunny_configuration_getf(prog.cnf, &siz.y, "Screen.Size[1]");
   if (!(prog.screen = bunny_new_picture(siz.x, siz.y)))
     {
       fprintf(stderr, "%s: Cannot reserve screen picture (%d, %d).\n", argv[0], siz.x, siz.y);
@@ -83,7 +85,7 @@ int			main(int		argc,
   prog.screen->position.y = prog.win->buffer.height / 2.0;
 
   fps = 50;
-  bunny_configuration_getf(prog.cnf, &fps, "FramePerSecond");
+  prog.cnf && bunny_configuration_getf(prog.cnf, &fps, "FramePerSecond");
 
   prog.context = 0;
   do

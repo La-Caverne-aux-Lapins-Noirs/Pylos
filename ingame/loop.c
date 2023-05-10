@@ -9,7 +9,6 @@
 
 t_bunny_response	ingame_loop(t_program		*prog)
 {
-
-
+  (void)prog;
   return (GO_ON);
 }

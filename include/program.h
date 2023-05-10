@@ -24,7 +24,8 @@ typedef enum		e_slot
    INVALID		= -1,
    EMPTY,
    BLACKBALLS,
-   WHITEBALLS
+   WHITEBALLS,
+   LAST_SLOT
   }			t_slot;
 
 typedef enum		e_context
@@ -37,7 +38,7 @@ typedef struct		s_ingame
 {
   t_bunny_picture	*ball;
   t_slot		*slots;
-  size_t		size;
+  int			size;
   t_slot		turn;
   t_slot		last_game;
   t_bunny_accurate_position rotation; // rotate horizontaly or verticaly around 0, 0, 0, but not deeply
@@ -59,5 +60,10 @@ t_slot			*get_slot(t_slot		*s,
 				  int			x,
 				  int			y,
 				  int			z);
+
+t_slot			*get_slotp(t_program		*prog,
+				   int			x,
+				   int			y,
+				   int			z);
 
 #endif	//		__PROGRAM_H__
