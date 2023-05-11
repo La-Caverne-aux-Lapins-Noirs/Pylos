@@ -17,8 +17,5 @@ t_bunny_response	ingame_key(t_bunny_event_state	state,
 	return (EXIT_ON_SUCCESS);
       return (SWITCH_CONTEXT);
     }
-
-  
-
   return (GO_ON);
 }
