@@ -13,6 +13,8 @@ void			ingame_leaving(t_bunny_response	ret,
   (void)ret;
   if (prog->ingame.ball)
     bunny_delete_clipable(prog->ingame.ball);
+  if (prog->ingame.normal_ball)
+    bunny_delete_clipable(prog->ingame.normal_ball);
   prog->ingame.ball = NULL;
 
   if (prog->ingame.slots)

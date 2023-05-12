@@ -37,6 +37,7 @@ typedef enum		e_context
 typedef struct		s_ingame
 {
   t_bunny_picture	*ball;
+  t_bunny_picture	*normal_ball;
   t_slot		*slots;
   int			size;
   t_slot		turn;
@@ -50,6 +51,10 @@ typedef struct		s_program
 {
   t_bunny_window	*win;
   t_bunny_picture	*screen;
+  t_bunny_picture	*normal_screen;
+  t_bunny_picture	*specular_screen;
+  t_bunny_normal_map	normal_configuration;
+  t_bunny_shader	*normal_shader;
   t_context		context;
   t_bunny_configuration	*cnf;
 

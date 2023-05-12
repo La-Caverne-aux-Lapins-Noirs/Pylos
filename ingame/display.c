@@ -7,6 +7,25 @@
 
 #include		"program.h"
 
+void			bsl(t_bunny_buffer	*buf,
+			    t_bunny_position	*pos,
+			    unsigned int	*col)
+{
+  t_bunny_position	p[2] = {
+    pos[0], pos[1]
+  };
+
+  bunny_set_line(buf, &p[0], col);
+  p[0].y += 1;
+  p[1].y += 1;
+  bunny_set_line(buf, &p[0], col);
+  p[0].y += 1;
+  p[1].y += 1;
+  bunny_set_line(buf, &p[0], col);
+  p[0].y += 1;
+  p[1].y += 1;
+}
+
 void			qsort_r(void		*base,
 				size_t		nmemb,
 				size_t		size,
@@ -93,13 +112,14 @@ typedef struct		s_ball
 
 t_bunny_response	ingame_display(t_program		*prog)
 {
-  unsigned int		coline[2] = {BLUE, RED};
+  unsigned int		coline[2] = {WHITE, WHITE};
   t_slot		*slot;
   t_bunny_position	p[2];
   size_t		len = size_of_map(prog->ingame.size);
   t_ball       		pos[len];
   t_ball       		lpos;
   t_zposition		rot;
+  t_zposition		lig;
   int			x, y, z, i, iter;
   bool			grid;
 
@@ -109,6 +129,7 @@ t_bunny_response	ingame_display(t_program		*prog)
   rot.z = prog->ingame.rotation.y;
 
   bunny_clear(&prog->screen->buffer, WHITE);
+  bunny_clear(&prog->normal_screen->buffer, COLOR(255, 128, 128, 255));
 
   for (i = z = 0; z < prog->ingame.size; ++z)
     for (y = 0; y < prog->ingame.size - z; ++y)
@@ -156,7 +177,8 @@ t_bunny_response	ingame_display(t_program		*prog)
 	      p[0].y += prog->screen->buffer.height / 2;
 	      p[1].x += prog->screen->buffer.width / 2;
 	      p[1].y += prog->screen->buffer.height / 2;
-	      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+	      bsl(&prog->screen->buffer, &p[0], &coline[0]);
+	      bsl(&prog->normal_screen->buffer, &p[0], &coline[0]);
 	    }
 	  for (x = 0; x <= prog->ingame.size - pos[iter].pos.z; ++x)
 	    {
@@ -175,7 +197,8 @@ t_bunny_response	ingame_display(t_program		*prog)
 	      p[0].y += prog->screen->buffer.height / 2;
 	      p[1].x += prog->screen->buffer.width / 2;
 	      p[1].y += prog->screen->buffer.height / 2;
-	      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+	      bsl(&prog->screen->buffer, &p[0], &coline[0]);
+	      bsl(&prog->normal_screen->buffer, &p[0], &coline[0]);
 	    }
 
 	  // Position du curseur
@@ -194,7 +217,8 @@ t_bunny_response	ingame_display(t_program		*prog)
 	  p[0].y += prog->screen->buffer.height / 2;
 	  p[1].x += prog->screen->buffer.width / 2;
 	  p[1].y += prog->screen->buffer.height / 2;
-	  bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+	  bsl(&prog->screen->buffer, &p[0], &coline[0]);
+	  bsl(&prog->normal_screen->buffer, &p[0], &coline[0]);
 
 
 	  lpos.pos.x = (prog->ingame.cursor.x + 1) - gridsize + prog->ingame.translation.x;
@@ -212,9 +236,8 @@ t_bunny_response	ingame_display(t_program		*prog)
 	  p[0].y += prog->screen->buffer.height / 2;
 	  p[1].x += prog->screen->buffer.width / 2;
 	  p[1].y += prog->screen->buffer.height / 2;
-	  bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
-
-
+	  bsl(&prog->screen->buffer, &p[0], &coline[0]);
+	  bsl(&prog->normal_screen->buffer, &p[0], &coline[0]);
 	}
       
       p[0] = isoproject(&pos[iter].pos, prog);
@@ -227,9 +250,46 @@ t_bunny_response	ingame_display(t_program		*prog)
 	prog->ingame.ball->color_mask.full = COLOR(255, 0xCA, 0xB2, 0xA3);
 
       bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);
+      bunny_blit(&prog->normal_screen->buffer, prog->ingame.normal_ball, &p[0]);
     }
 
+  //const t_bunny_position *mpos = bunny_get_mouse_position();
+
+  //bunny_normal_map_shader(&prog->normal_configuration);
+  //prog->normal_configuration.lights[0].x = mpos->x;
+  //prog->normal_configuration.lights[0].y = prog->win->buffer.height - mpos->y;
+
+  t_bunny_position posa;
+
+  lig.x = 2;
+  lig.y = 0;
+  lig.z = 1;
+  rotate(&lig, &rot);
+  posa = isoproject(&lig, prog);
+  prog->normal_configuration.lights[0].x = posa.x + prog->screen->buffer.width / 2;
+  prog->normal_configuration.lights[0].y = posa.y + prog->screen->buffer.height / 2;
+
+  lig.x = 0;
+  lig.y = 2;
+  lig.z = 1;
+  rotate(&lig, &rot);
+  posa = isoproject(&lig, prog);
+  prog->normal_configuration.lights[1].x = posa.x + prog->screen->buffer.width / 2;
+  prog->normal_configuration.lights[1].y = posa.y + prog->screen->buffer.height / 2;
+
+  lig.x = 0;
+  lig.y = -2;
+  lig.z = 1;
+  rotate(&lig, &rot);
+  posa = isoproject(&lig, prog);
+  prog->normal_configuration.lights[2].x = posa.x + prog->screen->buffer.width / 2;
+  prog->normal_configuration.lights[2].y = posa.y + prog->screen->buffer.height / 2;
+
+  bunny_normal_map_shader(&prog->normal_configuration);
+  bunny_blit_shader(&prog->win->buffer, prog->screen, NULL, prog->normal_shader);
+  prog->screen->color_mask.full = ALPHA(32, WHITE);
   bunny_blit(&prog->win->buffer, prog->screen, NULL);
+  prog->screen->color_mask.full = WHITE;
   bunny_display(prog->win);
   return (GO_ON);
 }

@@ -37,13 +37,13 @@ t_bunny_response	ingame_entering(t_program		*prog)
 
 	  if (!(prog->ingame.ball = bunny_new_picture(siz.x * 2 + 4, siz.y * 2 + 4)))
 	    {
-	      fprintf(stderr, "Cannot load res/ball.dab.\n");
+	      fprintf(stderr, "Cannot load res/ball.png.\n");
 	      return (EXIT_ON_ERROR);
 	    }
-	  
-	  bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(127), BLACK, 2);
+	  bunny_clear(&prog->ingame.ball->buffer, 0);
+	  bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(127), WHITE, 2);
 
-	  for (int i = 1; i < 5; ++i)
+	  for (int i = 1; i < 5 && 0; ++i)
 	    {
 	      if (i < 4)
 		{
@@ -58,12 +58,33 @@ t_bunny_response	ingame_entering(t_program		*prog)
 		  siz.y = 1;
 		}
 	      col = 127 + i * 32;
-	      printf("%d %d\n", col, siz.x);
-	      bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(col), BLACK, 0);
+	      bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(col), GRAY(col), 2);
 	    }
 	}
       prog->ingame.ball->origin.x = prog->ingame.ball->buffer.width / 2;
       prog->ingame.ball->origin.y = prog->ingame.ball->buffer.height / 2;
+    }
+
+  if (!prog->ingame.normal_ball)
+    {
+      if (!(prog->ingame.normal_ball = bunny_load_picture("res/normal_ball.png")))
+	{
+	  if (!(prog->ingame.normal_ball = bunny_new_picture(prog->ingame.ball->buffer.width, prog->ingame.ball->buffer.height)))
+	    {
+	      fprintf(stderr, "Cannot load res/normal_ball.png.\n");
+	      return (EXIT_ON_ERROR);
+	    }
+	  t_bunny_size	siz = {15, 15};
+	  t_bunny_size	pos = {(siz.x * 2 + 4) / 2, (siz.y * 2 + 4) / 2};
+
+	  bunny_clear(&prog->ingame.normal_ball->buffer, 0);
+	  bunny_set_disk(&prog->ingame.normal_ball->buffer, pos, siz, GRAY(127), GRAY(127), 2);
+	}
+
+      prog->ingame.normal_ball->origin.x = prog->ingame.normal_ball->buffer.width / 2;
+      prog->ingame.normal_ball->origin.y = prog->ingame.normal_ball->buffer.height / 2;
+      prog->ingame.normal_ball->scale.x = (double)prog->ingame.ball->buffer.width / prog->ingame.normal_ball->buffer.width;
+      prog->ingame.normal_ball->scale.y = (double)prog->ingame.ball->buffer.height / prog->ingame.normal_ball->buffer.height;
     }
 
   return (GO_ON);
