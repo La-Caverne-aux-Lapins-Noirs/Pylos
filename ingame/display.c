@@ -56,7 +56,7 @@ static t_bunny_position	isoproject(const t_zposition		*a,
 
   (void)prog;
   pos.x = (a->x - a->y);
-  pos.y = (a->x + a->y - a->z) / 2.0 * prog->ingame.rotation.x / (M_PI / 2);
+  pos.y = (a->x + a->y) / 2 * prog->ingame.rotation.x / (M_PI / 2) - a->z / 2;
   pos.x *= prog->ingame.ball->buffer.width;
   pos.y *= prog->ingame.ball->buffer.height;
   t_bunny_position ppos = {round(pos.x), round(pos.y)};
@@ -72,9 +72,9 @@ static int		compare_ball(const void			*_a,
   t_bunny_position	posa;
   t_bunny_position	posb;
 
-  if (a->z > b->z)
-    return (-1);
   if (a->z < b->z)
+    return (-1);
+  if (a->z > b->z)
     return (+1);
   posa = isoproject(a, prog);
   posb = isoproject(b, prog);
@@ -110,13 +110,13 @@ t_bunny_response	ingame_display(t_program		*prog)
 
   for (y = 0; y <= prog->ingame.size; ++y)
     {
-      pos[0].pos.x = -prog->ingame.size / 2.0;
-      pos[0].pos.y = y - prog->ingame.size / 2.0;
+      pos[0].pos.x = -prog->ingame.size / 2.0 + prog->ingame.translation.x;
+      pos[0].pos.y = y - prog->ingame.size / 2.0 + prog->ingame.translation.y;
       pos[0].pos.z = -prog->ingame.size / 8.0;
       rotate(&pos[0].pos, &rot);
       p[0] = isoproject(&pos[0].pos, prog);
-      pos[0].pos.x = +prog->ingame.size / 2.0;
-      pos[0].pos.y = y - prog->ingame.size / 2.0;
+      pos[0].pos.x = +prog->ingame.size / 2.0 + prog->ingame.translation.x;
+      pos[0].pos.y = y - prog->ingame.size / 2.0 + prog->ingame.translation.y;
       pos[0].pos.z = -prog->ingame.size / 8.0;
       rotate(&pos[0].pos, &rot);
       p[1] = isoproject(&pos[0].pos, prog);
@@ -129,13 +129,13 @@ t_bunny_response	ingame_display(t_program		*prog)
     }
   for (x = 0; x <= prog->ingame.size; ++x)
     {
-      pos[0].pos.x = x - prog->ingame.size / 2.0;
-      pos[0].pos.y = -prog->ingame.size / 2.0;
+      pos[0].pos.x = x - prog->ingame.size / 2.0 + prog->ingame.translation.x;
+      pos[0].pos.y = -prog->ingame.size / 2.0 + prog->ingame.translation.y;
       pos[0].pos.z = -prog->ingame.size / 8.0;
       rotate(&pos[0].pos, &rot);
       p[0] = isoproject(&pos[0].pos, prog);
-      pos[0].pos.x = x - prog->ingame.size / 2.0;
-      pos[0].pos.y = +prog->ingame.size / 2.0;
+      pos[0].pos.x = x - prog->ingame.size / 2.0 + prog->ingame.translation.x;
+      pos[0].pos.y = +prog->ingame.size / 2.0 + prog->ingame.translation.y;
       pos[0].pos.z = -prog->ingame.size / 8.0;
       rotate(&pos[0].pos, &rot);
       p[1] = isoproject(&pos[0].pos, prog);
@@ -159,8 +159,8 @@ t_bunny_response	ingame_display(t_program		*prog)
 	  pos[i].slot = *slot;
 
 	  // Position en 3D
-	  pos[i].pos.x = x - prog->ingame.size / 2.0;
-	  pos[i].pos.y = y - prog->ingame.size / 2.0;
+	  pos[i].pos.x = x - prog->ingame.size / 2.0 + 0.5 + z * 0.5 + prog->ingame.translation.x;
+	  pos[i].pos.y = y - prog->ingame.size / 2.0 + 0.5 + z * 0.5 + prog->ingame.translation.y;
 	  pos[i].pos.z = z;
 
 	  // On calcule
@@ -170,8 +170,6 @@ t_bunny_response	ingame_display(t_program		*prog)
   qsort_r(&pos[0], i, sizeof(pos[0]), compare_ball, prog);
   for (x = 0; x < i; ++x)
     {
-      pos[x].pos.x += 0.5;
-      pos[x].pos.y += 0.5;
       p[0] = isoproject(&pos[x].pos, prog);
       p[0].x += prog->screen->buffer.width / 2;
       p[0].y += prog->screen->buffer.height / 2;

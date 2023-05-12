@@ -17,8 +17,10 @@ t_bunny_response	ingame_entering(t_program		*prog)
       return (EXIT_ON_ERROR);
     }
 
-  *get_slotp(prog, 0, 0, 0) = BLACKBALLS;
-  *get_slotp(prog, 1, 0, 0) = WHITEBALLS;
+  for (int z = 0; z < prog->ingame.size; ++z)
+    for (int i = 0; i < prog->ingame.size - z; ++i)
+      for (int j = 0; j < prog->ingame.size - z; ++j)
+	*get_slotp(prog, i, j, z) = rand() % 2 ? BLACKBALLS : WHITEBALLS;
 
   if (!prog->ingame.last_game)
     prog->ingame.turn = rand() % 2;
@@ -29,14 +31,16 @@ t_bunny_response	ingame_entering(t_program		*prog)
     {
       if (!(prog->ingame.ball = bunny_load_picture("res/ball.png")))
 	{
-	  t_bunny_size	pos = {15, 15};
-	  t_bunny_size	siz = {10, 10};
+	  t_bunny_size	siz = {15, 15};
+	  t_bunny_size	pos = {(siz.x * 2 + 4) / 2, (siz.y * 2 + 4) / 2};
+	  int		col;
 
-	  if (!(prog->ingame.ball = bunny_new_picture(pos.x * 2, pos.y * 2)))
+	  if (!(prog->ingame.ball = bunny_new_picture(siz.x * 2 + 4, siz.y * 2 + 4)))
 	    {
 	      fprintf(stderr, "Cannot load res/ball.dab.\n");
 	      return (EXIT_ON_ERROR);
 	    }
+	  
 	  bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(127), BLACK, 2);
 
 	  for (int i = 1; i < 5; ++i)
@@ -45,10 +49,17 @@ t_bunny_response	ingame_entering(t_program		*prog)
 		{
 		  pos.x -= 1;
 		  pos.y -= 1;
+		  siz.x -= 2 * i;
+		  siz.y -= 2 * i;
 		}
-	      siz.x = 10 - 2 * i;
-	      siz.y = 10 - 2 * i;
-	      bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(127 + i * 32), BLACK, 0);
+	      else
+		{
+		  siz.x = 1;
+		  siz.y = 1;
+		}
+	      col = 127 + i * 32;
+	      printf("%d %d\n", col, siz.x);
+	      bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(col), BLACK, 0);
 	    }
 	}
       prog->ingame.ball->origin.x = prog->ingame.ball->buffer.width / 2;

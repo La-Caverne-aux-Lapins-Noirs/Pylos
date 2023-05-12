@@ -42,6 +42,7 @@ typedef struct		s_ingame
   t_slot		turn;
   t_slot		last_game;
   t_bunny_accurate_position rotation; // rotate horizontaly or verticaly around 0, 0, 0, but not deeply
+  t_bunny_accurate_position translation; // pour le plaisir
 }			t_ingame;
 
 typedef struct		s_program
