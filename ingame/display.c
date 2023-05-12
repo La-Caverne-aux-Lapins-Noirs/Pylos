@@ -93,13 +93,15 @@ typedef struct		s_ball
 
 t_bunny_response	ingame_display(t_program		*prog)
 {
-  unsigned int		coline[2] = {BLACK, BLACK};
+  unsigned int		coline[2] = {BLUE, RED};
   t_slot		*slot;
   t_bunny_position	p[2];
   size_t		len = size_of_map(prog->ingame.size);
   t_ball       		pos[len];
+  t_ball       		lpos;
   t_zposition		rot;
-  int			x, y, z, i;
+  int			x, y, z, i, iter;
+  bool			grid;
 
   // Rotation en 3D
   rot.x = 0;
@@ -107,45 +109,6 @@ t_bunny_response	ingame_display(t_program		*prog)
   rot.z = prog->ingame.rotation.y;
 
   bunny_clear(&prog->screen->buffer, WHITE);
-
-  for (y = 0; y <= prog->ingame.size; ++y)
-    {
-      pos[0].pos.x = -prog->ingame.size / 2.0 + prog->ingame.translation.x;
-      pos[0].pos.y = y - prog->ingame.size / 2.0 + prog->ingame.translation.y;
-      pos[0].pos.z = -prog->ingame.size / 8.0;
-      rotate(&pos[0].pos, &rot);
-      p[0] = isoproject(&pos[0].pos, prog);
-      pos[0].pos.x = +prog->ingame.size / 2.0 + prog->ingame.translation.x;
-      pos[0].pos.y = y - prog->ingame.size / 2.0 + prog->ingame.translation.y;
-      pos[0].pos.z = -prog->ingame.size / 8.0;
-      rotate(&pos[0].pos, &rot);
-      p[1] = isoproject(&pos[0].pos, prog);
-
-      p[0].x += prog->screen->buffer.width / 2;
-      p[0].y += prog->screen->buffer.height / 2;
-      p[1].x += prog->screen->buffer.width / 2;
-      p[1].y += prog->screen->buffer.height / 2;
-      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
-    }
-  for (x = 0; x <= prog->ingame.size; ++x)
-    {
-      pos[0].pos.x = x - prog->ingame.size / 2.0 + prog->ingame.translation.x;
-      pos[0].pos.y = -prog->ingame.size / 2.0 + prog->ingame.translation.y;
-      pos[0].pos.z = -prog->ingame.size / 8.0;
-      rotate(&pos[0].pos, &rot);
-      p[0] = isoproject(&pos[0].pos, prog);
-      pos[0].pos.x = x - prog->ingame.size / 2.0 + prog->ingame.translation.x;
-      pos[0].pos.y = +prog->ingame.size / 2.0 + prog->ingame.translation.y;
-      pos[0].pos.z = -prog->ingame.size / 8.0;
-      rotate(&pos[0].pos, &rot);
-      p[1] = isoproject(&pos[0].pos, prog);
-
-      p[0].x += prog->screen->buffer.width / 2;
-      p[0].y += prog->screen->buffer.height / 2;
-      p[1].x += prog->screen->buffer.width / 2;
-      p[1].y += prog->screen->buffer.height / 2;
-      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
-    }
 
   for (i = z = 0; z < prog->ingame.size; ++z)
     for (y = 0; y < prog->ingame.size - z; ++y)
@@ -167,16 +130,100 @@ t_bunny_response	ingame_display(t_program		*prog)
 	  rotate(&pos[i].pos, &rot);
 	  i += 1;
 	}
+  grid = false;
   qsort_r(&pos[0], i, sizeof(pos[0]), compare_ball, prog);
-  for (x = 0; x < i; ++x)
+  for (iter = 0; iter < i; ++iter)
     {
-      p[0] = isoproject(&pos[x].pos, prog);
+      if (pos[iter].pos.z >= prog->ingame.cursor.z && grid == false)
+	{
+	  double gridsize = (prog->ingame.size - pos[iter].pos.z) / 2.0;
+	  
+	  grid = true;
+	  for (y = 0; y <= prog->ingame.size - pos[iter].pos.z; ++y)
+	    {
+	      lpos.pos.x = -gridsize + prog->ingame.translation.x;
+	      lpos.pos.y = y - gridsize + prog->ingame.translation.y;
+	      lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	      rotate(&lpos.pos, &rot);
+	      p[0] = isoproject(&lpos.pos, prog);
+	      lpos.pos.x = +gridsize + prog->ingame.translation.x;
+	      lpos.pos.y = y - gridsize + prog->ingame.translation.y;
+	      lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	      rotate(&lpos.pos, &rot);
+	      p[1] = isoproject(&lpos.pos, prog);
+
+	      p[0].x += prog->screen->buffer.width / 2;
+	      p[0].y += prog->screen->buffer.height / 2;
+	      p[1].x += prog->screen->buffer.width / 2;
+	      p[1].y += prog->screen->buffer.height / 2;
+	      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+	    }
+	  for (x = 0; x <= prog->ingame.size - pos[iter].pos.z; ++x)
+	    {
+	      lpos.pos.x = x - gridsize + prog->ingame.translation.x;
+	      lpos.pos.y = -gridsize + prog->ingame.translation.y;
+	      lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	      rotate(&lpos.pos, &rot);
+	      p[0] = isoproject(&lpos.pos, prog);
+	      lpos.pos.x = x - gridsize + prog->ingame.translation.x;
+	      lpos.pos.y = +gridsize + prog->ingame.translation.y;
+	      lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	      rotate(&lpos.pos, &rot);
+	      p[1] = isoproject(&lpos.pos, prog);
+
+	      p[0].x += prog->screen->buffer.width / 2;
+	      p[0].y += prog->screen->buffer.height / 2;
+	      p[1].x += prog->screen->buffer.width / 2;
+	      p[1].y += prog->screen->buffer.height / 2;
+	      bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+	    }
+
+	  // Position du curseur
+	  lpos.pos.x = (prog->ingame.cursor.x + 0) - gridsize + prog->ingame.translation.x;
+	  lpos.pos.y = (prog->ingame.cursor.y + 0) - gridsize + prog->ingame.translation.y;
+	  lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	  rotate(&lpos.pos, &rot);
+	  p[0] = isoproject(&lpos.pos, prog);
+	  lpos.pos.x = (prog->ingame.cursor.x + 1) - gridsize + prog->ingame.translation.x;
+	  lpos.pos.y = (prog->ingame.cursor.y + 1) - gridsize + prog->ingame.translation.y;
+	  lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	  rotate(&lpos.pos, &rot);
+	  p[1] = isoproject(&lpos.pos, prog);
+
+	  p[0].x += prog->screen->buffer.width / 2;
+	  p[0].y += prog->screen->buffer.height / 2;
+	  p[1].x += prog->screen->buffer.width / 2;
+	  p[1].y += prog->screen->buffer.height / 2;
+	  bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+
+
+	  lpos.pos.x = (prog->ingame.cursor.x + 1) - gridsize + prog->ingame.translation.x;
+	  lpos.pos.y = (prog->ingame.cursor.y + 0) - gridsize + prog->ingame.translation.y;
+	  lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	  rotate(&lpos.pos, &rot);
+	  p[0] = isoproject(&lpos.pos, prog);
+	  lpos.pos.x = (prog->ingame.cursor.x + 0) - gridsize + prog->ingame.translation.x;
+	  lpos.pos.y = (prog->ingame.cursor.y + 1) - gridsize + prog->ingame.translation.y;
+	  lpos.pos.z = -prog->ingame.size / 8.0 + (int)prog->ingame.cursor.z;
+	  rotate(&lpos.pos, &rot);
+	  p[1] = isoproject(&lpos.pos, prog);
+
+	  p[0].x += prog->screen->buffer.width / 2;
+	  p[0].y += prog->screen->buffer.height / 2;
+	  p[1].x += prog->screen->buffer.width / 2;
+	  p[1].y += prog->screen->buffer.height / 2;
+	  bunny_set_line(&prog->screen->buffer, &p[0], &coline[0]);
+
+
+	}
+      
+      p[0] = isoproject(&pos[iter].pos, prog);
       p[0].x += prog->screen->buffer.width / 2;
       p[0].y += prog->screen->buffer.height / 2;
 
-      if (pos[x].slot == BLACKBALLS)
+      if (pos[iter].slot == BLACKBALLS)
 	prog->ingame.ball->color_mask.full = COLOR(255, 0x6E, 0x33, 0x00);
-      else if (pos[x].slot == WHITEBALLS)
+      else if (pos[iter].slot == WHITEBALLS)
 	prog->ingame.ball->color_mask.full = COLOR(255, 0xCA, 0xB2, 0xA3);
 
       bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);

@@ -63,8 +63,8 @@ int			main(int		argc,
       goto DeleteConf;
     }
 
-  siz.x = 320;
-  siz.y = 240;
+  siz.x = 400;
+  siz.y = 300;
   prog.cnf && bunny_configuration_getf(prog.cnf, &siz.x, "Screen.Size[0]");
   prog.cnf && bunny_configuration_getf(prog.cnf, &siz.y, "Screen.Size[1]");
   if (!(prog.screen = bunny_new_picture(siz.x, siz.y)))
