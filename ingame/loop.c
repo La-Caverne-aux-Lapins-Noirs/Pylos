@@ -13,23 +13,27 @@ t_bunny_response	ingame_loop(t_program		*prog)
 
   if (bunny_get_keyboard()[BKS_LSHIFT] || bunny_get_keyboard()[BKS_RSHIFT])
     omega *= 2;
-  
+
   prog->ingame.cursor.x = bunny_clamp(prog->ingame.cursor.x, 0, prog->ingame.size - prog->ingame.cursor.z - 1);
   prog->ingame.cursor.y = bunny_clamp(prog->ingame.cursor.y, 0, prog->ingame.size - prog->ingame.cursor.z - 1);
-  
-  if (bunny_get_keyboard()[BKS_UP])
+
+  if (bunny_get_keyboard()[BKS_Z] || bunny_get_keyboard()[BKS_W])
     prog->ingame.rotation.x -= omega * M_PI * bunny_get_delay();
-  if (bunny_get_keyboard()[BKS_DOWN])
+  if (bunny_get_keyboard()[BKS_S])
     prog->ingame.rotation.x += omega * M_PI * bunny_get_delay();
   if (prog->ingame.rotation.x < M_PI / 2)
     prog->ingame.rotation.x = M_PI / 2;
   if (prog->ingame.rotation.x > M_PI)
     prog->ingame.rotation.x = M_PI;
 
-  if (bunny_get_keyboard()[BKS_LEFT])
+  if (bunny_get_keyboard()[BKS_Q] || bunny_get_keyboard()[BKS_A])
     prog->ingame.rotation.y -= omega * M_PI * bunny_get_delay();
-  if (bunny_get_keyboard()[BKS_RIGHT])
+  if (bunny_get_keyboard()[BKS_D])
     prog->ingame.rotation.y += omega * M_PI * bunny_get_delay();
+  if (prog->ingame.rotation.y < -M_PI / 4)
+    prog->ingame.rotation.y = -M_PI / 4;
+  if (prog->ingame.rotation.y > +M_PI / 4)
+    prog->ingame.rotation.y = +M_PI / 4;
 
   bool			dir[4];
 
@@ -60,5 +64,6 @@ t_bunny_response	ingame_loop(t_program		*prog)
     }
   if (bunny_get_keyboard()[BKS_NUMPAD5])
     prog->ingame.translation.x = prog->ingame.translation.y = 0;
+
   return (GO_ON);
 }

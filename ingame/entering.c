@@ -10,6 +10,9 @@
 t_bunny_response	ingame_entering(t_program		*prog)
 {
   prog->ingame.size = 4;
+  prog->ingame.balls1 = ceil(size_of_map(prog->ingame.size) / 2);
+  prog->ingame.balls2 = ceil(size_of_map(prog->ingame.size) / 2);
+
   prog->cnf && bunny_configuration_getf(prog->cnf, &prog->ingame.size, "Game.Size");
   if (!(prog->ingame.slots = bunny_calloc(powf(prog->ingame.size, 3), sizeof(*prog->ingame.slots))))
     {
@@ -17,13 +20,8 @@ t_bunny_response	ingame_entering(t_program		*prog)
       return (EXIT_ON_ERROR);
     }
 
-  for (int z = 0; z < prog->ingame.size; ++z)
-    for (int i = 0; i < prog->ingame.size - z; ++i)
-      for (int j = 0; j < prog->ingame.size - z; ++j)
-	*get_slotp(prog, i, j, z) = rand() % 2 ? BLACKBALLS : WHITEBALLS;
-
   if (!prog->ingame.last_game)
-    prog->ingame.turn = rand() % 2;
+    prog->ingame.turn = rand() % 2 + 1;
   else
     prog->ingame.turn = prog->ingame.last_game;
 
@@ -41,7 +39,7 @@ t_bunny_response	ingame_entering(t_program		*prog)
 	      return (EXIT_ON_ERROR);
 	    }
 	  bunny_clear(&prog->ingame.ball->buffer, 0);
-	  bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(127), WHITE, 2);
+	  bunny_set_disk(&prog->ingame.ball->buffer, pos, siz, GRAY(127), GRAY(127), 2);
 
 	  for (int i = 1; i < 5 && 0; ++i)
 	    {
@@ -87,5 +85,15 @@ t_bunny_response	ingame_entering(t_program		*prog)
       prog->ingame.normal_ball->scale.y = (double)prog->ingame.ball->buffer.height / prog->ingame.normal_ball->buffer.height;
     }
 
+  if (prog->ingame.turn == BLACKBALLS)
+    {
+      prog->blacktext->string = "A toi de jouer!";
+      prog->whitetext->string = "";
+    }
+  else
+    {
+      prog->blacktext->string = "";
+      prog->whitetext->string = "A toi de jouer!";
+    }
   return (GO_ON);
 }

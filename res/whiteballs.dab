@@ -1,0 +1,12 @@
+
+RessourceFile=@"font.png"
+Position=400-400/2,300-40-300/2/2
+Size=400/2-5,300/2/2
+GlyphSize=5,7
+HorizontalAlign="Right"
+VerticalAlign="Bottom"
+Interglyph=4,0
+Text=""
+Color=255,255
+Scale=1,1
+

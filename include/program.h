@@ -34,6 +34,26 @@ typedef enum		e_context
    LAST_CONTEXT
   }			t_context;
 
+typedef union		s_play
+{
+  struct {
+    t_zposition		target; // ou mettre la balle
+    t_zposition		origin; // d'ou on la prend? ou -1 si c'est la reserve
+  };
+  t_zposition		pickups[2];
+  int			nbr_pickup; // on peut en prendre une ou deux
+}			t_play;
+
+typedef t_play		(*t_ai_play)(t_slot		*slot,
+				     size_t		size,
+				     int		quantity); // quantity est pour pickup
+
+typedef struct		s_ball
+{
+  t_zposition		pos;
+  t_slot		*slot;
+}			t_ball;
+
 typedef struct		s_ingame
 {
   t_bunny_picture	*ball;
@@ -45,6 +65,15 @@ typedef struct		s_ingame
   t_bunny_accurate_position rotation; // rotate horizontaly or verticaly around 0, 0, 0, but not deeply
   t_bunny_accurate_position translation; // pour le plaisir
   t_zposition		cursor;
+
+  t_ai_play		play1;
+  t_ai_play		play2;
+  t_ai_play		pickup1;
+  t_ai_play		pickup2;
+  t_slot		*picked_up; // la balle récupérée
+  t_zposition		picked_up_pos;
+  int			balls1;
+  int			balls2;
 }			t_ingame;
 
 typedef struct		s_program
@@ -55,8 +84,12 @@ typedef struct		s_program
   t_bunny_picture	*specular_screen;
   t_bunny_normal_map	normal_configuration;
   t_bunny_shader	*normal_shader;
+  t_bunny_screen_tweak	screen_tweak_configuration;
+  t_bunny_shader	*screen_tweak_shader;
   t_context		context;
   t_bunny_configuration	*cnf;
+  t_bunny_font		*blacktext;
+  t_bunny_font		*whitetext;
 
   // Contexts
   t_ingame		ingame;
@@ -72,5 +105,39 @@ t_slot			*get_slotp(t_program		*prog,
 				   int			x,
 				   int			y,
 				   int			z);
+
+t_slot			*can_place(t_program		*prog,
+				   int			x,
+				   int			y,
+				   int			z);
+int			place(t_program			*prog,
+			      int			x,
+			      int			y,
+			      int			z,
+			      t_slot			s);
+bool			detect_bonus(t_program		*prog,
+				     int		x,
+				     int		y,
+				     int		z);
+bool			can_removes(t_program		*prog,
+				    int			x,
+				    int			y,
+				    int			z,
+				    t_slot		player);
+bool			removes(t_program		*prog,
+				int			x,
+				int			y,
+				int			z,
+				t_slot			player);
+
+size_t			size_of_map(size_t		siz);
+
+bool			alone_on_stage(t_program	*prog,
+				       t_ball		*pos,
+				       int		siz);
+
+// Cette fonction sert seulement à déterminer une position aléatoire
+void			all_places(t_program		*prog,
+				   t_slot		*slot[static 4 * 4]);
 
 #endif	//		__PROGRAM_H__

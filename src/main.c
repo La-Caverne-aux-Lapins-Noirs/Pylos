@@ -36,7 +36,9 @@ int			main(int		argc,
   ret = EXIT_FAILURE;
   if (argc > 2)
     {
+      //bunny_set_error_descriptor(2);
       prog.cnf = bunny_open_configuration(argv[1], NULL);
+      bunny_set_error_descriptor(-1);
       if (!prog.cnf)
 	{
 	  fprintf(stderr, "%s: Cannot load configuration.\n", argv[0]);
@@ -76,14 +78,6 @@ int			main(int		argc,
 
   prog.screen->scale.x = (double)prog.win->buffer.width / prog.screen->buffer.width;
   prog.screen->scale.y = (double)prog.win->buffer.height / prog.screen->buffer.height;
-  if (prog.screen->scale.x < prog.screen->scale.y)
-    prog.screen->scale.y = prog.screen->scale.x;
-  else
-    prog.screen->scale.x = prog.screen->scale.y;
-  prog.screen->origin.x = prog.screen->buffer.width / 2.0;
-  prog.screen->origin.y = prog.screen->buffer.height / 2.0;
-  prog.screen->position.x = prog.win->buffer.width / 2.0;
-  prog.screen->position.y = prog.win->buffer.height / 2.0;
 
   fps = 50;
   prog.cnf && bunny_configuration_getf(prog.cnf, &fps, "FramePerSecond");
@@ -123,7 +117,7 @@ int			main(int		argc,
       prog.normal_configuration.lights[i].z = 0.2;
       prog.normal_configuration.lights[i].ambient_color.full = WHITE;
       prog.normal_configuration.lights[i].specular_color.full = WHITE;
-      prog.normal_configuration.lights[0].light_color.full = WHITE;
+      prog.normal_configuration.lights[i].light_color.full = WHITE;
 
       prog.normal_configuration.lights[i].light_attenuation = 1;
       prog.normal_configuration.lights[i].ambient_depth = 0.1;
@@ -141,17 +135,33 @@ int			main(int		argc,
       goto DeleteSpecularScreen;
     }
 
+  bunny_default_screen_tweak(&prog.screen_tweak_configuration);
+  prog.screen_tweak_configuration.blur_level = 3.0;
+  prog.screen_tweak_shader = bunny_screen_tweak_shader(&prog.screen_tweak_configuration);
+
+  if (!(prog.blacktext = bunny_load_text("./res/blackballs.dab")))
+    {
+      fprintf(stderr, "%s: Cannot load fonts.\n", argv[0]);
+      goto DeleteSpecularScreen;
+    }
+  if (!(prog.whitetext = bunny_load_text("./res/whiteballs.dab")))
+    {
+      fprintf(stderr, "%s: Cannot load fonts.\n", argv[0]);
+      goto DeleteBlackText;
+    }
+
   prog.context = 0;
   do
     {
       bunny_set_context(&gl_context[prog.context]);
       res = bunny_loop(prog.win, fps, &prog);
     }
-  while (res == SWITCH_CONTEXT);
+  while (res == SWITCH_CONTEXT && prog.context < LAST_CONTEXT);
   if (res == EXIT_ON_SUCCESS)
     ret = EXIT_SUCCESS;
 
-  bunny_delete_shader(prog.normal_shader);
+ DeleteBlackText:
+  bunny_delete_clipable(&prog.blacktext->clipable);
  DeleteSpecularScreen:
   bunny_delete_clipable(prog.specular_screen);
  DeleteNormalScreen:
