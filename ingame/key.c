@@ -46,16 +46,29 @@ t_bunny_response	ingame_key(t_bunny_event_state	state,
 
 	      if (can_removes(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn))
 		{
-		  if (tmp != NULL && tmp != prog->ingame.picked_up)
+		  if (tmp != NULL && tmp != prog->ingame.picked_up[0] && tmp != prog->ingame.picked_up[1])
 		    {
 		      if (*tmp == prog->ingame.turn)
 			{
-			  prog->ingame.picked_up = tmp;
-			  prog->ingame.picked_up_pos = prog->ingame.cursor;
+			  if (!prog->ingame.picked_up[0])
+			    {
+			      prog->ingame.picked_up[0] = tmp;
+			      prog->ingame.picked_up_pos[0] = prog->ingame.cursor;
+			    }
+			  else
+			    {
+			      prog->ingame.picked_up[1] = tmp;
+			      prog->ingame.picked_up_pos[1] = prog->ingame.cursor;
+			    }
 			}
 		    }
 		  else
-		    prog->ingame.picked_up = NULL;
+		    {
+		      if (prog->ingame.picked_up[0] == tmp)
+			prog->ingame.picked_up[0] = NULL;
+		      if (prog->ingame.picked_up[1] == tmp)
+			prog->ingame.picked_up[1] = NULL;
+		    }
 		}
 	      else
 		{
@@ -77,7 +90,13 @@ t_bunny_response	ingame_key(t_bunny_event_state	state,
 	    }
 	  if (sym == BKS_SPACE)
 	    {
-	      if (prog->ingame.picked_up && prog->ingame.picked_up_pos.z >= prog->ingame.cursor.z - 0.9)
+	      // Retrait de deux billes suites à un bonus ligne/carré
+	      //
+	      //
+	      //
+
+	      // Est ce que le montage d'une bille d'un étage est possible?
+	      if (prog->ingame.picked_up[0] && prog->ingame.picked_up_pos[0].z >= prog->ingame.cursor.z - 0.9)
 		{
 		  if (prog->ingame.turn == BLACKBALLS)
 		    prog->blacktext->string = "Le deplacement ne peut s'effectuer qu'en hauteur!";
@@ -85,12 +104,14 @@ t_bunny_response	ingame_key(t_bunny_event_state	state,
 		    prog->whitetext->string = "Le deplacement ne peut s'effectuer qu'en hauteur!";
 		  return (GO_ON);
 		}
+
 	      if (place(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn))
 		{
-		  if (prog->ingame.picked_up)
+		  if (prog->ingame.picked_up[0])
 		    {
-		      if (removes(prog, prog->ingame.picked_up_pos.x, prog->ingame.picked_up_pos.y,
-				  prog->ingame.picked_up_pos.z, prog->ingame.turn) == false)
+		      // Retrait de la bille montée
+		      if (removes(prog, prog->ingame.picked_up_pos[0].x, prog->ingame.picked_up_pos[0].y,
+				  prog->ingame.picked_up_pos[0].z, prog->ingame.turn) == false)
 			{
 			  removes(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn);
 			  if (prog->ingame.turn == BLACKBALLS)
@@ -100,7 +121,7 @@ t_bunny_response	ingame_key(t_bunny_event_state	state,
 			  return (GO_ON);
 			}
 		      else
-			prog->ingame.picked_up = NULL;
+			prog->ingame.picked_up[0] = NULL;
 		    }
 
 		  if (prog->ingame.turn == BLACKBALLS)

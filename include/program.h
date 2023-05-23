@@ -61,6 +61,7 @@ typedef struct		s_ingame
   t_slot		*slots;
   int			size;
   t_slot		turn;
+  bool			remove;
   t_slot		last_game;
   t_bunny_accurate_position rotation; // rotate horizontaly or verticaly around 0, 0, 0, but not deeply
   t_bunny_accurate_position translation; // pour le plaisir
@@ -70,8 +71,9 @@ typedef struct		s_ingame
   t_ai_play		play2;
   t_ai_play		pickup1;
   t_ai_play		pickup2;
-  t_slot		*picked_up; // la balle récupérée
-  t_zposition		picked_up_pos;
+  t_slot		*picked_up[2]; // la balle récupérée
+  t_zposition		picked_up_pos[2];
+  int			nbr_picked_up;
   int			balls1;
   int			balls2;
 }			t_ingame;
@@ -90,6 +92,9 @@ typedef struct		s_program
   t_bunny_configuration	*cnf;
   t_bunny_font		*blacktext;
   t_bunny_font		*whitetext;
+
+  t_bunny_server	*server;
+  t_bunny_client	*client;
 
   // Contexts
   t_ingame		ingame;

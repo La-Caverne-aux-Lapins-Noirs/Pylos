@@ -34,23 +34,23 @@ int			main(int		argc,
 
   bunny_enable_full_blit(true);
   ret = EXIT_FAILURE;
-  if (argc > 2)
+  if (argc == 2)
     {
-      //bunny_set_error_descriptor(2);
-      prog.cnf = bunny_open_configuration(argv[1], NULL);
-      bunny_set_error_descriptor(-1);
-      if (!prog.cnf)
+      if (strcmp(argv[1], "host") == 0)
 	{
-	  fprintf(stderr, "%s: Cannot load configuration.\n", argv[0]);
-	  return (EXIT_FAILURE);
+	  if ((prog.server = bunny_new_server(20601)) == NULL) // "Py" in big endian
+	    fprintf(stderr, "%s: Cannot open server socket.\n", argv[0]);
+	  else
+	    bunny_set_server_to_scheduler(prog.server);
 	}
+      else if ((prog.client = bunny_new_client(argv[1], 20601)) == NULL)
+	fprintf(stderr, "%s: Cannot open client socket.\n", argv[0]);
+      else
+	bunny_set_client_to_scheduler(prog.client);
     }
-  else
-    {
-      if (!bunny_join_binary_directory(argv[0]))
-	return (EXIT_FAILURE);
-      prog.cnf = bunny_open_configuration("default_configuration.dab", NULL);
-    }
+  if (!bunny_join_binary_directory(argv[0]))
+    return (EXIT_FAILURE);
+  prog.cnf = bunny_open_configuration("configuration.dab", NULL);
 
   siz.x = 800;
   siz.y = 600;
@@ -171,6 +171,11 @@ int			main(int		argc,
  DeleteWindow:
   bunny_stop(prog.win);
  DeleteConf:
-  bunny_delete_configuration(prog.cnf);
+  if (prog.cnf)
+    bunny_delete_configuration(prog.cnf);
+  if (prog.server)
+    bunny_delete_server(prog.server);
+  if (prog.client)
+    bunny_delete_client(prog.client);
   return (ret);
 }

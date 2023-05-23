@@ -329,7 +329,7 @@ t_bunny_response	ingame_display(t_program		*prog)
       bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);
       bunny_blit(&prog->normal_screen->buffer, prog->ingame.normal_ball, &p[0]);
 
-      if (pos[iter].slot == prog->ingame.picked_up)
+      if (pos[iter].slot == prog->ingame.picked_up[0] || pos[iter].slot == prog->ingame.picked_up[1])
 	prog->ingame.ball->color_mask.full = ALPHA(200, RED);
       bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);
     }
@@ -351,7 +351,7 @@ t_bunny_response	ingame_display(t_program		*prog)
       bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);
       bunny_blit(&prog->normal_screen->buffer, prog->ingame.normal_ball, &p[0]);
 
-      if (pos[iter].slot == prog->ingame.picked_up)
+      if (pos[iter].slot == prog->ingame.picked_up[0] || pos[iter].slot == prog->ingame.picked_up[1])
 	prog->ingame.ball->color_mask.full = ALPHA(200, RED);
       bunny_blit(&prog->screen->buffer, prog->ingame.ball, &p[0]);
     }
