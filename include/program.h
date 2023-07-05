@@ -9,6 +9,18 @@
 # define		__PROGRAM_H__
 # include		<lapin.h>
 
+typedef enum		e_game_action
+  {
+    PYLOS_LEVEL_UP,
+    PYLOS_LEVEL_DOWN,
+    PYLOS_GO_LEFT,
+    PYLOS_GO_RIGHT,
+    PYLOS_GO_UP,
+    PYLOS_GO_DOWN,
+    PYLOS_TAKE,
+    PYLOS_PUT
+  }			t_game_action;
+
 typedef union		s_zposition
 {
   struct {
@@ -67,6 +79,9 @@ typedef struct		s_ingame
   t_bunny_accurate_position translation; // pour le plaisir
   t_zposition		cursor;
 
+  int			clients[2]; // 0 est blanc, 1 est noir.
+  int			nbr_clients;
+  
   t_ai_play		play1;
   t_ai_play		play2;
   t_ai_play		pickup1;
@@ -99,6 +114,9 @@ typedef struct		s_program
   // Contexts
   t_ingame		ingame;
 }			t_program;
+
+void			movement(t_program		*prog,
+				 t_game_action		action);
 
 t_slot			*get_slot(t_slot		*s,
 				  int			siz,

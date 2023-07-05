@@ -41,12 +41,21 @@ int			main(int		argc,
 	  if ((prog.server = bunny_new_server(20601)) == NULL) // "Py" in big endian
 	    fprintf(stderr, "%s: Cannot open server socket.\n", argv[0]);
 	  else
-	    bunny_set_server_to_scheduler(prog.server);
+	    {
+	      gl_context[INGAME].netcom = prog.server;
+	      gl_context[INGAME].netconnect = ingame_connect;
+	      gl_context[INGAME].netmessage = ingame_message;
+	      puts("Serveur ouvert.");
+	    }
 	}
       else if ((prog.client = bunny_new_client(argv[1], 20601)) == NULL)
 	fprintf(stderr, "%s: Cannot open client socket.\n", argv[0]);
       else
-	bunny_set_client_to_scheduler(prog.client);
+	{
+	  gl_context[INGAME].netcom = prog.client;
+	  gl_context[INGAME].netmessage = ingame_message;
+	  puts("Connexion établie.");
+	}
     }
   if (!bunny_join_binary_directory(argv[0]))
     return (EXIT_FAILURE);
@@ -55,6 +64,11 @@ int			main(int		argc,
   siz.x = 800;
   siz.y = 600;
   tmp = false;
+
+  prog.ingame.clients[0] = -1;
+  prog.ingame.clients[1] = -1;
+  prog.ingame.nbr_clients = 0;
+  
   prog.cnf && bunny_configuration_getf(prog.cnf, &siz.x, "Window.Size[0]");
   prog.cnf && bunny_configuration_getf(prog.cnf, &siz.y, "Window.Size[1]");
   prog.cnf && bunny_configuration_getf(prog.cnf, &tmp, "Window.Fullscreen");
@@ -150,6 +164,15 @@ int			main(int		argc,
       goto DeleteBlackText;
     }
 
+  puts(
+       "Bienvenue dans Pylos.\n"
+       "Utilisez espace pour placer une bille.\n"
+       "Utilisez controle pour prendre une bille.\n"
+       "\n"
+       "Capacité réseau possible sur port 20601.\n"
+       "Précisez 'host' pour établir un serveur, une IP pour un client."
+       );
+  
   prog.context = 0;
   do
     {
