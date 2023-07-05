@@ -85,6 +85,8 @@ t_bunny_response	ingame_entering(t_program		*prog)
       prog->ingame.normal_ball->scale.y = (double)prog->ingame.ball->buffer.height / prog->ingame.normal_ball->buffer.height;
     }
 
+  prog->ingame.nbr_picked_up = 1;
+  
   if (prog->ingame.turn == BLACKBALLS)
     {
       prog->blacktext->string = "A toi de jouer!";

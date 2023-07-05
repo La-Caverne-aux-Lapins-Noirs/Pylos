@@ -18,7 +18,10 @@ t_bunny_context		gl_context[LAST_CONTEXT] =
     .key = ingame_key,
     .loop = ingame_loop,
     .display = ingame_display,
-    .move = ingame_move
+    .move = ingame_move,
+    .connect = ingame_joy_connect,
+    .button = ingame_joy_button,
+    .axis = ingame_joy_axis
    }
   };
 
@@ -174,6 +177,7 @@ int			main(int		argc,
        );
   
   prog.context = 0;
+  bunny_set_joystick_threshold(prog.win, 70);
   do
     {
       bunny_set_context(&gl_context[prog.context]);

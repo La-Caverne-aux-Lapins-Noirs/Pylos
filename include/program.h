@@ -88,7 +88,7 @@ typedef struct		s_ingame
   t_ai_play		pickup2;
   t_slot		*picked_up[2]; // la balle récupérée
   t_zposition		picked_up_pos[2];
-  int			nbr_picked_up;
+  int			nbr_picked_up; // combien on peut en prendre
   int			balls1;
   int			balls2;
 }			t_ingame;

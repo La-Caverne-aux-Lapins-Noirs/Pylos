@@ -32,7 +32,7 @@ bool			movement(t_program		*prog,
 	    {
 	      if (*tmp == prog->ingame.turn)
 		{
-		  if (!prog->ingame.picked_up[0])
+		  if (!prog->ingame.picked_up[0] || prog->ingame.nbr_picked_up == 1)
 		    {
 		      prog->ingame.picked_up[0] = tmp;
 		      prog->ingame.picked_up_pos[0] = prog->ingame.cursor;
@@ -76,7 +76,7 @@ bool			movement(t_program		*prog,
       // Retrait de deux billes suites à un bonus ligne/carré
       //
       //
-      //
+      // prog->ingame.nbr_picked_up = 2;
 
       // Est ce que le montage d'une bille d'un étage est possible?
       if (prog->ingame.picked_up[0] && prog->ingame.picked_up_pos[0].z >= prog->ingame.cursor.z - 0.9)

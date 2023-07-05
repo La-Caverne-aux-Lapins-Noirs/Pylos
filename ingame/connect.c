@@ -7,6 +7,20 @@
 
 #include		"program.h"
 
+t_bunny_response	ingame_joy_connect(t_bunny_event_state	state,
+					   int			joyid,
+					   const t_bunny_joystick *j,
+					   t_program		*prog)
+{
+  (void)joyid;
+  (void)prog;
+  if (state == CONNECTED)
+    printf("Nouvelle manette (%d) détectée: %s.\n", joyid, j->name);
+  else
+    printf("Manette perdue (%d): %s.\n", joyid, j->name);
+  return (GO_ON);
+} 
+
 t_bunny_response	ingame_connect(int			fd,
 				       t_bunny_event_state	state,
 				       t_program		*prog)
