@@ -7,7 +7,7 @@
 
 #include		"program.h"
 
-void			movement(t_program		*prog,
+bool			movement(t_program		*prog,
 				 t_game_action		action)
 {
   if (action == PYLOS_LEVEL_UP)
@@ -68,6 +68,7 @@ void			movement(t_program		*prog,
 	      else
 		prog->whitetext->string = "Impossible de retirer cette bille!";
 	    }
+	  return (false);
 	}
     }
   else if (action == PYLOS_PUT)
@@ -84,43 +85,44 @@ void			movement(t_program		*prog,
 	    prog->blacktext->string = "Le deplacement ne peut s'effectuer qu'en hauteur!";
 	  else
 	    prog->whitetext->string = "Le deplacement ne peut s'effectuer qu'en hauteur!";
-	  return ;
+	  return (false);
 	}
 
-      if (place(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn))
+      if (!place(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn))
+	return (false);
+
+      if (prog->ingame.picked_up[0])
 	{
-	  if (prog->ingame.picked_up[0])
+	  // Retrait de la bille montée
+	  if (removes(prog, prog->ingame.picked_up_pos[0].x, prog->ingame.picked_up_pos[0].y,
+		      prog->ingame.picked_up_pos[0].z, prog->ingame.turn) == false)
 	    {
-	      // Retrait de la bille montée
-	      if (removes(prog, prog->ingame.picked_up_pos[0].x, prog->ingame.picked_up_pos[0].y,
-			  prog->ingame.picked_up_pos[0].z, prog->ingame.turn) == false)
-		{
-		  removes(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn);
-		  if (prog->ingame.turn == BLACKBALLS)
-		    prog->blacktext->string = "Impossible de deplacer la bille ici!";
-		  else
-		    prog->whitetext->string = "Impossible de deplacer la bille ici!";
-		  return ;
-		}
+	      removes(prog, prog->ingame.cursor.x, prog->ingame.cursor.y, prog->ingame.cursor.z, prog->ingame.turn);
+	      if (prog->ingame.turn == BLACKBALLS)
+		prog->blacktext->string = "Impossible de deplacer la bille ici!";
 	      else
-		prog->ingame.picked_up[0] = NULL;
-	    }
-
-	  if (prog->ingame.turn == BLACKBALLS)
-	    prog->ingame.turn = WHITEBALLS;
-	  else
-	    prog->ingame.turn = BLACKBALLS;
-
-	  if (prog->ingame.turn == BLACKBALLS)
-	    {
-	      prog->blacktext->string = "A toi de jouer!";
-	      prog->whitetext->string = "";
+		prog->whitetext->string = "Impossible de deplacer la bille ici!";
+	      return (false);
 	    }
 	  else
-	    {
-	      prog->blacktext->string = "";
-	      prog->whitetext->string = "A toi de jouer!";
-	    }
+	    prog->ingame.picked_up[0] = NULL;
+	}
+
+      if (prog->ingame.turn == BLACKBALLS)
+	prog->ingame.turn = WHITEBALLS;
+      else
+	prog->ingame.turn = BLACKBALLS;
+
+      if (prog->ingame.turn == BLACKBALLS)
+	{
+	  prog->blacktext->string = "A toi de jouer!";
+	  prog->whitetext->string = "";
+	}
+      else
+	{
+	  prog->blacktext->string = "";
+	  prog->whitetext->string = "A toi de jouer!";
 	}
     }
+  return (true);
 }

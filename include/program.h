@@ -115,7 +115,7 @@ typedef struct		s_program
   t_ingame		ingame;
 }			t_program;
 
-void			movement(t_program		*prog,
+bool			movement(t_program		*prog,
 				 t_game_action		action);
 
 t_slot			*get_slot(t_slot		*s,
