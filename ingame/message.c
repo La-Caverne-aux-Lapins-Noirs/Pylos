@@ -80,6 +80,13 @@ t_bunny_response	ingame_message(int		fd,
 	  res = true;
 	}
     }
+  if (strncmp(buffer, "me", 2) == 0)
+  {
+	if (fd == prog->ingame.clients[0])
+	   bunny_server_write(prog->server, "2\n", 2, fd);
+	else if (fd == prog->ingame.clients[1])
+	   bunny_server_write(prog->server, "1\n", 2, fd);
+  }
   bunny_server_write(prog->server, res ? "ok\n" : "ko\n", 3, fd);
   return (GO_ON);
 }
