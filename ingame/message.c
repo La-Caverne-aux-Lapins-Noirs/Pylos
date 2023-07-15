@@ -23,7 +23,7 @@ t_bunny_response	ingame_message(int		fd,
   if ((prog->ingame.turn == WHITEBALLS && prog->ingame.clients[0] != fd) ||
       (prog->ingame.turn == BLACKBALLS && prog->ingame.clients[1] != fd))
     {
-      bunny_server_write(prog->server, "not ur turn, dumbass\n", 21, fd);
+      bunny_server_write(prog->server, "ko\n", 3, fd);
       return (GO_ON);
     }
   
