@@ -109,8 +109,11 @@ bool			movement(t_program		*prog,
 	}
 
       if (prog->ingame.turn == BLACKBALLS)
-	prog->ingame.turn = WHITEBALLS;
-      else
+	{
+	  if (prog->ingame.balls2 > 0)
+	    prog->ingame.turn = WHITEBALLS;
+	}
+      else if (prog->ingame.balls1 > 0)
 	prog->ingame.turn = BLACKBALLS;
 
       if (prog->ingame.turn == BLACKBALLS)

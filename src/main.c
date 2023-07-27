@@ -37,6 +37,7 @@ int			main(int		argc,
   keryanbool		noscreen;
   int			fps;
   int			ret;
+  int			n_try;
   int			i;
 
   noscreen = false;
@@ -46,8 +47,19 @@ int			main(int		argc,
     {
       if (strcmp(argv[i], "host") == 0)
 	{
-	  if ((prog.server = bunny_new_server(20601)) == NULL) // "Py" in big endian
-	    fprintf(stderr, "%s: Cannot open server socket.\n", argv[0]);
+	  if ((prog.server = bunny_new_server(atoi(argv[i + 1]))) == NULL) // "Py" in big endian
+	    {
+	      fprintf(stderr, "%s: Cannot open server socket.\n", argv[0]);
+	      n_try = 1;
+	      while (!prog.server && n_try < 6)
+		{
+		  usleep(1e5 * n_try);
+		  prog.server = bunny_new_server(atoi(argv[i + 1]));
+		  n_try += 1;
+		}
+	      if (n_try == 6)
+		return(-1);
+	    }
 	  else
 	    {
 	      gl_context[INGAME].netcom = prog.server;
