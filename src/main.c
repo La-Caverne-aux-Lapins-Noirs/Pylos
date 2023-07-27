@@ -25,6 +25,8 @@ t_bunny_context		gl_context[LAST_CONTEXT] =
    }
   };
 
+#define			keryanbool		bool
+
 int			main(int		argc,
 			     char		**argv)
 {
@@ -32,14 +34,17 @@ int			main(int		argc,
   t_bunny_size		siz;
   t_bunny_response	res;
   bool			tmp;
+  keryanbool		noscreen;
   int			fps;
   int			ret;
+  int			i;
 
+  noscreen = false;
   bunny_enable_full_blit(true);
   ret = EXIT_FAILURE;
-  if (argc == 2)
+  for (i = 1; i < argc; ++i)
     {
-      if (strcmp(argv[1], "host") == 0)
+      if (strcmp(argv[i], "host") == 0)
 	{
 	  if ((prog.server = bunny_new_server(20601)) == NULL) // "Py" in big endian
 	    fprintf(stderr, "%s: Cannot open server socket.\n", argv[0]);
@@ -51,6 +56,9 @@ int			main(int		argc,
 	      puts("Serveur ouvert.");
 	    }
 	}
+      if (strcmp(argv[i], "--noscreen") == 0)
+	noscreen = true;
+      /*
       else if ((prog.client = bunny_new_client(argv[1], 20601)) == NULL)
 	fprintf(stderr, "%s: Cannot open client socket.\n", argv[0]);
       else
@@ -59,6 +67,7 @@ int			main(int		argc,
 	  gl_context[INGAME].netmessage = ingame_message;
 	  puts("Connexion établie.");
 	}
+      */
     }
   if (!bunny_join_binary_directory(argv[0]))
     return (EXIT_FAILURE);
@@ -71,17 +80,19 @@ int			main(int		argc,
   prog.ingame.clients[0] = -1;
   prog.ingame.clients[1] = -1;
   prog.ingame.nbr_clients = 0;
-  
+
+  prog.win = NULL;
   prog.cnf && bunny_configuration_getf(prog.cnf, &siz.x, "Window.Size[0]");
   prog.cnf && bunny_configuration_getf(prog.cnf, &siz.y, "Window.Size[1]");
   prog.cnf && bunny_configuration_getf(prog.cnf, &tmp, "Window.Fullscreen");
-  if (!(prog.win = bunny_start(siz.x, siz.y, tmp, "Solyp")))
-    {
-      fprintf(stderr, "%s: Cannot open window (%d, %d, %s).\n",
-	      argv[0], siz.x, siz.y, tmp ? "fullscreen" : "windowed"
-	      );
-      goto DeleteConf;
-    }
+  if (!noscreen)
+    if (!(prog.win = bunny_start(siz.x, siz.y, tmp, "Solyp")))
+      {
+	fprintf(stderr, "%s: Cannot open window (%d, %d, %s).\n",
+		argv[0], siz.x, siz.y, tmp ? "fullscreen" : "windowed"
+		);
+	goto DeleteConf;
+      }
 
   siz.x = 400;
   siz.y = 300;
@@ -93,8 +104,8 @@ int			main(int		argc,
       goto DeleteWindow;
     }
 
-  prog.screen->scale.x = (double)prog.win->buffer.width / prog.screen->buffer.width;
-  prog.screen->scale.y = (double)prog.win->buffer.height / prog.screen->buffer.height;
+  prog.screen->scale.x = (double)siz.x / prog.screen->buffer.width;
+  prog.screen->scale.y = (double)siz.y / prog.screen->buffer.height;
 
   fps = 50;
   prog.cnf && bunny_configuration_getf(prog.cnf, &fps, "FramePerSecond");
@@ -105,16 +116,16 @@ int			main(int		argc,
       goto DeleteScreen;
     }
 
-  prog.normal_screen->scale.x = (double)prog.win->buffer.width / prog.normal_screen->buffer.width;
-  prog.normal_screen->scale.y = (double)prog.win->buffer.height / prog.normal_screen->buffer.height;
+  prog.normal_screen->scale.x = (double)siz.x / prog.normal_screen->buffer.width;
+  prog.normal_screen->scale.y = (double)siz.y / prog.normal_screen->buffer.height;
   if (prog.normal_screen->scale.x < prog.normal_screen->scale.y)
     prog.normal_screen->scale.y = prog.normal_screen->scale.x;
   else
     prog.normal_screen->scale.x = prog.normal_screen->scale.y;
   prog.normal_screen->origin.x = prog.normal_screen->buffer.width / 2.0;
   prog.normal_screen->origin.y = prog.normal_screen->buffer.height / 2.0;
-  prog.normal_screen->position.x = prog.win->buffer.width / 2.0;
-  prog.normal_screen->position.y = prog.win->buffer.height / 2.0;
+  prog.normal_screen->position.x = siz.x / 2.0;
+  prog.normal_screen->position.y = siz.y / 2.0;
 
   if (!(prog.specular_screen = bunny_new_picture(prog.screen->buffer.width, prog.screen->buffer.height)))
     {
@@ -177,7 +188,8 @@ int			main(int		argc,
        );
   
   prog.context = 0;
-  bunny_set_joystick_threshold(prog.win, 70);
+  if (prog.win)
+    bunny_set_joystick_threshold(prog.win, 70);
   do
     {
       bunny_set_context(&gl_context[prog.context]);
@@ -196,7 +208,8 @@ int			main(int		argc,
  DeleteScreen:
   bunny_delete_clipable(prog.screen);
  DeleteWindow:
-  bunny_stop(prog.win);
+  if (prog.win)
+    bunny_stop(prog.win);
  DeleteConf:
   if (prog.cnf)
     bunny_delete_configuration(prog.cnf);

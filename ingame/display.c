@@ -277,6 +277,8 @@ void			display_grid(t_program		*prog,
 
 t_bunny_response	ingame_display(t_program		*prog)
 {
+  if (!prog->win) // --noscreen
+    return (GO_ON);
   t_slot		*slot;
   t_bunny_position	p[2];
   size_t		len = size_of_map(prog->ingame.size);
