@@ -40,6 +40,9 @@ int			main(int		argc,
   int			n_try;
   int			i;
 
+  bunny_set_error_descriptor(2);
+  bunny_set_log_filter("network");
+  bunny_set_log_mode(true);
   noscreen = false;
   bunny_enable_full_blit(true);
   ret = EXIT_FAILURE;
@@ -53,20 +56,19 @@ int			main(int		argc,
 	      n_try = 1;
 	      while (!prog.server && n_try < 6)
 		{
-		  usleep(1e5 * n_try);
+		  fprintf(stderr, "Serveur Réessai\n");
+		  usleep(1e5);
 		  prog.server = bunny_new_server(atoi(argv[i + 1]));
 		  n_try += 1;
 		}
+	      fprintf(stderr, "Serveur success\n");
 	      if (n_try == 6)
 		return(-1);
 	    }
-	  else
-	    {
-	      gl_context[INGAME].netcom = prog.server;
-	      gl_context[INGAME].netconnect = ingame_connect;
-	      gl_context[INGAME].netmessage = ingame_message;
-	      puts("Serveur ouvert.");
-	    }
+	  gl_context[INGAME].netcom = prog.server;
+	  gl_context[INGAME].netconnect = ingame_connect;
+	  gl_context[INGAME].netmessage = ingame_message;
+	  puts("Serveur ouvert.");
 	}
       if (strcmp(argv[i], "--noscreen") == 0)
 	noscreen = true;
